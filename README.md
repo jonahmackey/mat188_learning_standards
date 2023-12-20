@@ -13,6 +13,7 @@ Written for MAT188 at the University of Toronto
 1. Setup global data files in `../Data`
     1. list of required learning standards
     1. student roster information from UTAGT
+1. Download learning standards Latex project to `./Learning_Standards`
 1. Run reports
     1. `lsa_v4.py` produces a CSV file indicating which learning standards were achieved by every student in the course
     1. `make_ls_report_v2.py` produces a PDF containing detailed learning reports for each individual student for upload to Gradescope
