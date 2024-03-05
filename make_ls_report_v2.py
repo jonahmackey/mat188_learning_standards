@@ -52,7 +52,7 @@ def build_tex(row: pd.Series, args: argparse.Namespace, filename: Optional[str] 
 
     template = template.replace("REPLdetailedtableREPL", '\n'.join(rows))
 
-    with open(f"{args.data_path}/ls_reports/tex/combined.tex", "a") as f:
+    with open(f"{args.output_path}/ls_reports/tex/combined.tex", "a") as f:
         f.write(template)
 
 def run(args: argparse.Namespace):
@@ -66,11 +66,11 @@ def run(args: argparse.Namespace):
     student_progress[('student',
                     'student_id')] = [roster[x] for x in student_progress.index]
 
-    if not os.path.exists(f'{args.data_path}/ls_reports/tex'):
-        os.makedirs(f'{args.data_path}/ls_reports/tex')
+    if not os.path.exists(f'{args.output_path}/ls_reports/tex'):
+        os.makedirs(f'{args.output_path}/ls_reports/tex')
 
-    if not os.path.exists(f'{args.data_path}/ls_reports/pdf'):
-        os.makedirs(f'{args.data_path}/ls_reports/pdf')
+    if not os.path.exists(f'{args.output_path}/ls_reports/pdf'):
+        os.makedirs(f'{args.output_path}/ls_reports/pdf')
 
     # insert an empty first row into the dataframe
     templaterow = pd.DataFrame(columns=student_progress.columns,
@@ -81,10 +81,10 @@ def run(args: argparse.Namespace):
     student_progress = pd.concat([templaterow, student_progress])
 
     # write header
-    if os.path.exists(f'{args.data_path}/ls_reports/tex/combined.tex'):
-        os.remove(f'{args.data_path}/ls_reports/tex/combined.tex')
+    if os.path.exists(f'{args.output_path}/ls_reports/tex/combined.tex'):
+        os.remove(f'{args.output_path}/ls_reports/tex/combined.tex')
 
-    shutil.copy('./tex_files/ls_report_header.tex', f'{args.data_path}/ls_reports/tex/combined.tex')
+    shutil.copy('./tex_files/ls_report_header.tex', f'{args.output_path}/ls_reports/tex/combined.tex')
 
     # for testing, only build first 20 students
     if args.debug:
@@ -98,19 +98,19 @@ def run(args: argparse.Namespace):
         build_tex(row, args, filename=filename)
 
     # end document
-    with open(f"{args.data_path}/ls_reports/tex/combined.tex", "a") as f:
+    with open(f"{args.output_path}/ls_reports/tex/combined.tex", "a") as f:
         f.write("\n\\end{document}")
 
     # compile
     t1 = datetime.datetime.now()
     os.system(
-        f'pdflatex -output-directory {args.data_path}/ls_reports/pdf {args.data_path}/ls_reports/tex/combined.tex'
+        f'pdflatex -output-directory {args.output_path}/ls_reports/pdf {args.output_path}/ls_reports/tex/combined.tex'
     )
 
     # remove everything that doesn't end with pdf
-    os.remove(f'{args.data_path}/ls_reports/pdf/combined.aux')
-    os.remove(f'{args.data_path}/ls_reports/pdf/combined.log')
-    os.remove(f'{args.data_path}/ls_reports/pdf/combined.out')
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.aux')
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.log')
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.out')
 
     print(f'Built PDF in {(datetime.datetime.now() - t1).total_seconds()} s.')
 

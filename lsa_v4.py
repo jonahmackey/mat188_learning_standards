@@ -13,11 +13,10 @@ from tqdm import tqdm
 import re
 import argparse
 import multiprocessing as mp
-import psutil
 import functools
 import os, os.path
 
-nthreads = psutil.cpu_count(logical=False) - 1
+nthreads = mp.cpu_count() - 1
 
 def extract_tutorial_number(x: str):
     rel = re.search(r'TUT(\d{4})', x)
