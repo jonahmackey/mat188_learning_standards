@@ -10,14 +10,14 @@ import argparse
 from tqdm import tqdm
 
 
-def build_tex(row: pd.Series, filename: Optional[str] = None):
+def build_tex(row: pd.Series, args: argparse.Namespace, filename: Optional[str] = None, ):
     filename = filename or row.name
 
     # row.dropna(inplace=True)
     subset_cols = row.drop('student', level=0).drop('fraction_achieved', level=0)
 
 
-    with open("ls_report_page.tex", "r") as f:
+    with open("./tex_files/ls_report_page.tex", "r") as f:
         template = f.read()
 
     # make replacements
@@ -52,25 +52,25 @@ def build_tex(row: pd.Series, filename: Optional[str] = None):
 
     template = template.replace("REPLdetailedtableREPL", '\n'.join(rows))
 
-    with open("../Output/ls_reports/tex/combined.tex", "a") as f:
+    with open(f"{args.data_path}/ls_reports/tex/combined.tex", "a") as f:
         f.write(template)
 
 def run(args: argparse.Namespace):
-    student_progress = pd.read_csv(r"../Output/standards_achieved.csv",
+    student_progress = pd.read_csv(f'{args.output_path}/standards_achieved.csv',
                                    header=[0, 1],
                                    index_col=0)
 
 
-    roster = pd.read_csv(r"../Data/mat188-2023f-roster.csv",
+    roster = pd.read_csv(f'{args.data_path}/mat188-2023f-roster.csv',
                         index_col=3)['Student Number']
     student_progress[('student',
                     'student_id')] = [roster[x] for x in student_progress.index]
 
-    if not os.path.exists('../Output/ls_reports/tex'):
-        os.makedirs('../Output/ls_reports/tex')
+    if not os.path.exists(f'{args.data_path}/ls_reports/tex'):
+        os.makedirs(f'{args.data_path}/ls_reports/tex')
 
-    if not os.path.exists('../Output/ls_reports/pdf'):
-        os.makedirs('../Output/ls_reports/pdf')
+    if not os.path.exists(f'{args.data_path}/ls_reports/pdf'):
+        os.makedirs(f'{args.data_path}/ls_reports/pdf')
 
     # insert an empty first row into the dataframe
     templaterow = pd.DataFrame(columns=student_progress.columns,
@@ -81,10 +81,10 @@ def run(args: argparse.Namespace):
     student_progress = pd.concat([templaterow, student_progress])
 
     # write header
-    if os.path.exists("../Output/ls_reports/tex/combined.tex"):
-        os.remove("../Output/ls_reports/tex/combined.tex")
+    if os.path.exists(f'{args.data_path}/ls_reports/tex/combined.tex'):
+        os.remove(f'{args.data_path}/ls_reports/tex/combined.tex')
 
-    shutil.copy("ls_report_header.tex", "../Output/ls_reports/tex/combined.tex")
+    shutil.copy('./tex_files/ls_report_header.tex', f'{args.data_path}/ls_reports/tex/combined.tex')
 
     # for testing, only build first 20 students
     if args.debug:
@@ -95,22 +95,22 @@ def run(args: argparse.Namespace):
                         total=len(student_progress)):
         filename = ri
 
-        build_tex(row, filename=filename)
+        build_tex(row, args, filename=filename)
 
     # end document
-    with open("../Output/ls_reports/tex/combined.tex", "a") as f:
+    with open(f"{args.data_path}/ls_reports/tex/combined.tex", "a") as f:
         f.write("\n\\end{document}")
 
     # compile
     t1 = datetime.datetime.now()
     os.system(
-        'pdflatex -output-directory ../Output/ls_reports/pdf ../Output/ls_reports/tex/combined.tex'
+        f'pdflatex -output-directory {args.data_path}/ls_reports/pdf {args.data_path}/ls_reports/tex/combined.tex'
     )
 
     # remove everything that doesn't end with pdf
-    os.remove('../Output/ls_reports/pdf/combined.aux')
-    os.remove('../Output/ls_reports/pdf/combined.log')
-    os.remove('../Output/ls_reports/pdf/combined.out')
+    os.remove(f'{args.data_path}/ls_reports/pdf/combined.aux')
+    os.remove(f'{args.data_path}/ls_reports/pdf/combined.log')
+    os.remove(f'{args.data_path}/ls_reports/pdf/combined.out')
 
     print(f'Built PDF in {(datetime.datetime.now() - t1).total_seconds()} s.')
 

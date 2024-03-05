@@ -76,7 +76,7 @@ def load_data(args: argparse.Namespace):
     ## Data loading
 
     # import table of learning standards
-    lsref = pd.read_excel('../Data/standards_lookup_table.xlsx',
+    lsref = pd.read_excel(f'{args.data_path}/standards_lookup_table.xlsx',
                           sheet_name='grading')
     lsref = lsref.set_index('standard').stack().reset_index()
     lsref.columns = ['standard', 'modality', 'reqs']
@@ -86,16 +86,16 @@ def load_data(args: argparse.Namespace):
         lsref = lsref[lsref['modality'] != 'exam']
 
     # load tutorial SBG assignments
-    tut_day_tbl = pd.read_excel('../Data/standards_lookup_table.xlsx',
+    tut_day_tbl = pd.read_excel(f'{args.data_path}/standards_lookup_table.xlsx',
                                 sheet_name='tut_dates',
                                 index_col='tutorial')
-    tut_sbg_assigned = pd.read_excel('../Data/standards_lookup_table.xlsx',
+    tut_sbg_assigned = pd.read_excel(f'{args.data_path}/standards_lookup_table.xlsx',
                                      sheet_name='sbg_assigned',
                                      index_col=0)
 
     # load roster
-    roster = pd.read_csv('../Data/mat188-2023f-roster.csv')
-    gradebook = pd.read_csv(r"../Data/mat188-2023f-gradebook.csv")
+    roster = pd.read_csv(f'{args.data_path}/mat188-2023f-roster.csv')
+    gradebook = pd.read_csv(f'{args.data_path}/mat188-2023f-gradebook.csv')
     gradebook = gradebook[~gradebook['SIS User ID'].isna()]
     gradebook = gradebook[['SIS User ID',
                            'Section']].set_index(['SIS User ID'])
@@ -114,7 +114,7 @@ def load_data(args: argparse.Namespace):
     scores = None
 
     ##### WEBWORK #####
-    for filename in glob.glob('../Data/*.html'):
+    for filename in glob.glob(f'{args.data_path}/*.html'):
         print(f'Loading {filename}...')
         this_score = wwparse.parse_html(filename, save_csv=False)
 
@@ -161,7 +161,7 @@ def load_data(args: argparse.Namespace):
 
     # load tutorial data
     tut_scores = None
-    for filename in glob.glob('../Data/Tutorials-Processed/*TUT*/*_SBG.xlsx'):
+    for filename in glob.glob(f'{args.data_path}/Tutorials-Processed/*TUT*/*_SBG.xlsx'):
         print(f'Loading {filename}...')
         this_score = pd.read_excel(filename)
 
@@ -213,7 +213,7 @@ def load_data(args: argparse.Namespace):
 
     # load midterm data
     if args.compute_exams:
-        for filename in glob.glob('../Data/*Midterm*/*.csv'):
+        for filename in glob.glob(f'{args.data_path}/*Midterm*/*.csv'):
             print(f'Loading {filename}...')
             this_score = pd.read_csv(filename)
 
@@ -249,14 +249,14 @@ def load_data(args: argparse.Namespace):
             scores = pd.concat([scores, this_score], ignore_index=True)
 
     # load manually scored items
-    manual_scores = pd.read_excel('../Data/mat188-2023f-manualscores.xlsx')
+    manual_scores = pd.read_excel(f'{args.data_path}/mat188-2023f-manualscores.xlsx')
     scores = pd.concat((scores, manual_scores), ignore_index=True)
 
     # remove score rows without an associated utorid
     scores = scores[scores['login_name'] != ''].dropna(subset=['login_name'])
 
     # save for debugging
-    scores.to_csv('../Output/debug_raw_scores.csv')
+    scores.to_csv(f'{args.output_path}/debug_raw_scores.csv')
 
     return scores, roster, lsref
 
@@ -339,7 +339,7 @@ def run(args: argparse.Namespace):
                                                    'Last Name']
     standards_achieved.sort_index(axis=0, inplace=True)
 
-    standards_achieved.to_csv('../Output/standards_achieved.csv')
+    standards_achieved.to_csv(f'{args.output_path}/standards_achieved.csv')
 
 
 
@@ -347,13 +347,15 @@ def run(args: argparse.Namespace):
 # Parse arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--data-path', default='../Data')
+    parser.add_argument('--output-path', default='../Output')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--compute-exams', action='store_true')
     parser.add_argument('--generate-reports', action='store_true')
     args = parser.parse_args()
 
-    if not os.path.exists('../Output'):
-        os.makedirs('../Output')
+    if not os.path.exists(args.output_path):
+        os.makedirs(args.output_path)
 
     run(args)
 
