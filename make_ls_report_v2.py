@@ -108,9 +108,9 @@ def run(args: argparse.Namespace):
     )
 
     # remove everything that doesn't end with pdf
-    os.remove(f'{args.output_path}/ls_reports/pdf/combined.aux')
-    os.remove(f'{args.output_path}/ls_reports/pdf/combined.log')
-    os.remove(f'{args.output_path}/ls_reports/pdf/combined.out')
+    for f in [f'{args.output_path}/ls_reports/pdf/combined.aux', f'{args.output_path}/ls_reports/pdf/combined.log', f'{args.output_path}/ls_reports/pdf/combined.out']:
+        if os.path.exists(f):
+            os.remove(f)
 
     print(f'Built PDF in {(datetime.datetime.now() - t1).total_seconds()} s.')
 
