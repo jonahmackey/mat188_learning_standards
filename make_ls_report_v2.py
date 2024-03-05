@@ -2,6 +2,7 @@ from typing import Optional
 
 import os
 import os.path
+import subprocess
 import shutil
 import pandas as pd
 import datetime
@@ -103,14 +104,12 @@ def run(args: argparse.Namespace):
 
     # compile
     t1 = datetime.datetime.now()
-    os.system(
-        f'pdflatex -output-directory {args.output_path}/ls_reports/pdf {args.output_path}/ls_reports/tex/combined.tex'
-    )
+    subprocess.run(['pdflatex', '-output-directory', f'{args.output_path}/ls_reports/pdf', f'{args.output_path}/ls_reports/tex/combined.tex'])
 
-    # remove everything that doesn't end with pdf
-    for f in [f'{args.output_path}/ls_reports/pdf/combined.aux', f'{args.output_path}/ls_reports/pdf/combined.log', f'{args.output_path}/ls_reports/pdf/combined.out']:
-        if os.path.exists(f):
-            os.remove(f)
+    # remove everything that doesn't end with pdf            
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.aux')
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.log')
+    os.remove(f'{args.output_path}/ls_reports/pdf/combined.out')
 
     print(f'Built PDF in {(datetime.datetime.now() - t1).total_seconds()} s.')
 
